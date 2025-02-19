@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teksol</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            height: 100vh;
+        }
+        .container {
+            display: flex;
+            max-width: 800px;
+            width: 100%;
+            justify-content: space-between;
+        }
+        .history {
+            width: 30%;
+            padding: 10px;
+            border-right: 2px solid #ccc;
+        }
+        .main {
+            width: 65%;
+            padding: 10px;
+            text-align: center;
+        }
+        input, button {
+            padding: 10px;
+            font-size: 16px;
+            margin: 10px 0;
+            width: 100%;
+        }
+        #result, #outputCode {
+            font-size: 20px;
+            font-weight: bold;
+        }
+        .history ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .history li {
+            margin: 5px 0;
+            word-wrap: break-word;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- History Section -->
+    <div class="history">
+        <h3>History</h3>
+        <ul id="historyList"></ul>
+    </div>
+
+    <!-- Main Section -->
+    <div class="main">
+        <h1>IN</h1>
+        <label for="codeInput">Masukkan Kode (angka):</label><br>
+        <input type="text" id="codeInput" placeholder=""><br>
+        <button onclick="decodeCode()">Pecahkan Kode</button>
+
+        <p id="result"></p>
+
+        <h1>OUT</h1>
+        <label for="textInput">Masukkan Kalimat:</label><br>
+        <input type="text" id="textInput" placeholder="Masukkan kalimat..."><br>
+        <button onclick="encodeText()">Ubah ke Kode</button>
+
+        <p id="outputCode"></p>
+    </div>
+</div>
+
+<script>
+    const keypad = {
+        2: 'ABC',
+        3: 'DEF',
+        4: 'GHI',
+        5: 'JKL',
+        6: 'MNO',
+        7: 'PQRS',
+        8: 'TUV',
+        9: 'WXYZ',
+        0: ' '  // 0 untuk spasi
+    };
+
+    let history = [];
+
+    function decodeCode() {
+        const code = document.getElementById('codeInput').value;
+        let decodedMessage = '';
+        let i = 0;
+
+        while (i < code.length) {
+            const digit = parseInt(code[i]);
+            const nextDigit = parseInt(code[i + 1]);
+
+            // Cek apakah angka tersebut adalah 0 untuk spasi
+            if (digit === 0) {
+                decodedMessage += keypad[digit];  // Menambahkan spasi
+                i++; // Lewati angka 0
+            }
+            // Cek apakah ada angka berikutnya dan angka tersebut valid
+            else if (!isNaN(nextDigit)) {
+                decodedMessage += keypad[digit][nextDigit - 1] || '?';
+                i += 2; // Lewati dua angka karena sudah terproses
+            } else {
+                // Kalau tidak ada angka berikutnya, anggap sebagai tombol pertama, tekan sekali
+                decodedMessage += keypad[digit][0];
+                i++; // Hanya maju satu angka
+            }
+        }
+
+        document.getElementById('result').textContent = decodedMessage;
+
+        // Menambahkan kode dan hasil ke dalam history
+        addToHistory(code, decodedMessage);
+    }
+
+    function addToHistory(code, decodedMessage) {
+        // Menambahkan item baru ke history
+        history.unshift({ code, decodedMessage });
+
+        // Menjaga maksimal 10 item di history
+        if (history.length > 10) {
+            history.pop();
+        }
+
+        // Menampilkan history
+        updateHistory();
+    }
+
+    function updateHistory() {
+        const historyList = document.getElementById('historyList');
+        historyList.innerHTML = ''; // Kosongkan daftar history
+
+        history.forEach(item => {
+            const li = document.createElement('li');
+            li.textContent = `${item.code} → ${item.decodedMessage}`;
+            historyList.appendChild(li);
+        });
+    }
+
+    function encodeText() {
+        const text = document.getElementById('textInput').value.toUpperCase();
+        let encodedMessage = '';
+
+        // Encode setiap huruf menjadi kode
+        for (let char of text) {
+            if (char === ' ') {
+                encodedMessage += '0';
+            } else {
+                for (let key in keypad) {
+                    if (keypad[key].includes(char)) {
+                        let presses = keypad[key].indexOf(char) + 1;
+                        encodedMessage += key + presses;
+                        break;
+                    }
+                }
+            }
+        }
+
+        document.getElementById('outputCode').textContent = encodedMessage;
+    }
+</script>
+
+</body>
+</html>
